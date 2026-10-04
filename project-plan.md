@@ -4,6 +4,8 @@
 
 Binary image classifier (dog vs. cat) built with PyTorch. Three model configurations are trained and compared, with **ResNet-18 + Linear FC (fine-tuned)** selected as the final model for submission. The same model is then adapted for CIFAR-10 multi-class classification.
 
+**Execution:** Single Jupyter notebook — `IE4483_Project2.ipynb`
+
 **Lecture briefing:** Try different models, select only 1, give reasons. Use lecture content (weeks 5–11) to analyse and evaluate.
 
 **Dataset location:** `datasets/train/`, `datasets/val/`, `datasets/test/`
@@ -15,19 +17,19 @@ Binary image classifier (dog vs. cat) built with PyTorch. Three model configurat
 
 | PDF Requirement | How Fulfilled |
 |----------------|--------------|
-| **Step 1** — Load train/val/test from provided dataset | `utils/dataset.py` with `ImageFolder` + custom `TestDataset` |
-| **Step 2** — Preprocess + augment (scaling, rotation, flipping) | `RandomResizedCrop` + `RandomRotation` + `RandomHorizontalFlip` + `ColorJitter` |
-| **Step 3** — Design classification model (CNN or pretrained backbone) | 3 configs tried; ResNet-18 + FC selected as final |
-| **Step 4** — Try different parameters; train on train set, validate on val set | Hyperparameter experiments; val set never used for weight updates |
-| **Step 5** — Generate submission.csv (id + label, 1=dog, 0=cat) | `predict.py` outputs 500-row CSV |
-| **Part a** — State image counts + describe preprocessing | Subset size documented; full augmentation pipeline described |
-| **Part b** — At least 1 model, architecture, dims, loss, training, code, reproducibility | All 3 configs documented; ResNet-18 selected; seed=42 fixed |
-| **Part c** — Discuss parameter choices + reasons | Hyperparameter table with lecture-grounded justification |
-| **Part d** — Val accuracy + submission.csv | Val accuracy logged per epoch; submission.csv generated |
-| **Part e** — Analyse correct/incorrect samples | Val set used (test set unlabelled); 1–2 cases discussed |
-| **Part f** — Compare different models and data processing | 3-way comparison: Custom CNN vs. ResNet+SVM vs. ResNet+FC |
-| **Part g** — CIFAR-10 adaptation, describe changes, report test results | ResNet-18 adapted to 10-class; changes documented |
-| **Part h** — Handle class imbalance with ≥2 approaches | Weighted loss + WeightedRandomSampler |
+| **Step 1** — Load train/val/test from provided dataset | Notebook Cell 2 — `ImageFolder` + custom `TestDataset` |
+| **Step 2** — Preprocess + augment (scaling, rotation, flipping) | Notebook Cell 2 — `RandomResizedCrop` + `RandomRotation` + `RandomHorizontalFlip` + `ColorJitter` |
+| **Step 3** — Design classification model (CNN or pretrained backbone) | Notebook Cells 3–4 — 3 configs tried; ResNet-18 + FC selected as final |
+| **Step 4** — Try different parameters; train on train set, validate on val set | Notebook Cell 5 — Hyperparameter experiments; val set never used for weight updates |
+| **Step 5** — Generate submission.csv (id + label, 1=dog, 0=cat) | Notebook Cell 8 — outputs 500-row CSV |
+| **Part a** — State image counts + describe preprocessing | Notebook Cell 2 |
+| **Part b** — At least 1 model, architecture, dims, loss, training, code, reproducibility | Notebook Cells 3–5 — ResNet-18 selected; seed=42 fixed |
+| **Part c** — Discuss parameter choices + reasons | Notebook Cell 5 — hyperparameter table with lecture-grounded justification |
+| **Part d** — Val accuracy + submission.csv | Notebook Cells 5, 8 |
+| **Part e** — Analyse correct/incorrect samples | Notebook Cell 7 — val set used (test set unlabelled) |
+| **Part f** — Compare different models and data processing | Notebook Cell 6 — 3-way comparison |
+| **Part g** — CIFAR-10 adaptation, describe changes, report test results | Notebook Cell 9 |
+| **Part h** — Handle class imbalance with ≥2 approaches | Notebook Cell 10 — Weighted loss + WeightedRandomSampler |
 
 ---
 
@@ -35,34 +37,33 @@ Binary image classifier (dog vs. cat) built with PyTorch. Three model configurat
 
 ### Requirements
 
-- Python 3.12 (recommended — stable, fully supported by PyTorch 2.x and all dependencies)
+- Python 3.12 (recommended — stable, fully supported by PyTorch 2.x)
 - NVIDIA GPU with CUDA (local machine)
+- Jupyter Notebook or JupyterLab
 
-### Virtual Environment Setup (Required)
-
-All development must be done inside a virtual environment to keep dependencies isolated.
+### Setup Steps
 
 ```bash
-# 1. Create the virtual environment inside the project folder
+# 1. Create virtual environment
 python -m venv venv
 
-# 2. Activate it (Windows)
+# 2. Activate (Windows)
 venv\Scripts\activate
 
-# 3. Install CUDA-enabled PyTorch (match your NVIDIA driver)
-#    Check your CUDA version with: nvidia-smi
-#    Then pick the right wheel at: https://pytorch.org/get-started/locally/
+# 3. Install CUDA-enabled PyTorch (check your CUDA version with: nvidia-smi)
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
-# 4. Install remaining dependencies
-pip install numpy pandas matplotlib scikit-learn tqdm Pillow
+# 4. Install remaining dependencies + Jupyter
+pip install numpy pandas matplotlib scikit-learn tqdm Pillow notebook
 
-# 5. Freeze versions for reproducibility
+# 5. Freeze versions
 pip freeze > requirements.txt
+
+# 6. Launch notebook
+jupyter notebook IE4483_Project2.ipynb
 ```
 
 > To reactivate the environment in a new terminal: `venv\Scripts\activate`
-> To deactivate: `deactivate`
 
 ### Python Packages
 
@@ -76,38 +77,29 @@ matplotlib
 scikit-learn
 tqdm
 Pillow
+notebook
 ```
 
-### Project File Structure (after setup)
+### Project File Structure
 
 ```
 ie4483 prj/
-├── venv/                    ← virtual environment (do not commit)
+├── venv/                        ← virtual environment (do not commit)
 ├── datasets/
 │   ├── train/cat/   (10,000 images)
 │   ├── train/dog/   (10,000 images)
 │   ├── val/cat/     (2,500 images)
 │   ├── val/dog/     (2,500 images)
 │   └── test/        (500 images: 1.jpg – 500.jpg)
-├── data/                    ← CIFAR-10 auto-downloaded here by torchvision
+├── data/                        ← CIFAR-10 auto-downloaded here by torchvision
+├── checkpoints/                 ← saved model weights (.pth files, created by notebook)
+├── outputs/                     ← saved plots and figures (created by notebook)
+├── IE4483_Project2.ipynb        ← SINGLE NOTEBOOK — all code lives here
+├── submission.csv               ← final output (generated by notebook Cell 8)
 ├── sampleSubmission.csv
 ├── IE4483-Project2.pdf
-├── project-plan.md          ← this file
-├── requirements.txt         ← frozen package versions
-├── train.py                 ← main training script (Dogs vs. Cats)
-├── predict.py               ← generates submission.csv
-├── models/
-│   ├── custom_cnn.py        ← Config A: Custom CNN definition
-│   └── resnet_finetune.py   ← Config B & C: ResNet-18 wrapper
-├── utils/
-│   ├── dataset.py           ← DataLoader setup + augmentation
-│   └── evaluate.py          ← accuracy, confusion matrix, sample plots
-├── cifar10/
-│   ├── train_cifar10.py     ← CIFAR-10 training (parts g & h)
-│   └── imbalance.py         ← class imbalance utilities
-├── checkpoints/             ← saved model weights (.pth files)
-├── outputs/                 ← saved plots and figures for report
-└── submission.csv           ← final output
+├── project-plan.md
+└── requirements.txt
 ```
 
 ---
@@ -122,426 +114,265 @@ Three configurations are trained and compared. Only **Config C** is used for fin
 | **B** | ResNet-18 (frozen backbone) | SVM (sklearn) | Extract features → fit SVM | Week 6 SVM + Week 8 features |
 | **C** | ResNet-18 (unfreeze layer4 + fc) | Linear FC (fine-tuned) | Fine-tune end-to-end | **Final model** — Week 8 transfer learning |
 
-**Expected val accuracy progression:**
+**Expected val accuracy:**
 ```
-Config A (Custom CNN)    → ~75–82%   ← no pretrained weights, limited data
-Config B (ResNet + SVM)  → ~88–91%   ← pretrained features, but fixed classifier
-Config C (ResNet + FC)   → ~91–94%   ← pretrained features + end-to-end fine-tuning  ← SELECTED
-```
-
-**Part (f) conclusion:** Transfer learning beats training from scratch. End-to-end fine-tuning beats fixed feature extraction with SVM. Augmentation further improves Config C accuracy.
-
----
-
-## Sub-Tasks
-
----
-
-### Sub-Task 1 — Data Loading & Augmentation
-
-**Status:** [ ] pending
-
-**Intent:**
-Set up the PyTorch `Dataset` and `DataLoader` for train, val, and test splits with appropriate image transforms. All three model configs consume this same pipeline.
-
-**Expected Outcomes:**
-- `utils/dataset.py` provides `get_dataloaders(data_dir, batch_size, img_size, subset_size)` returning train/val/test loaders
-- Images resized to 224×224 (standard for ResNet-18; also works for Custom CNN)
-- Train split applies augmentation; val/test apply only resize + normalize
-- Supports subset of images (start: 2,000 train + 500 val) via `subset_size` parameter
-
-**Augmentation Pipeline (train only) — covers PDF Step 2:**
-- `RandomRotation(degrees=15)` ← rotation (explicitly named in PDF)
-- `RandomHorizontalFlip(p=0.5)` ← flipping (explicitly named in PDF)
-- `RandomResizedCrop(224, scale=(0.8, 1.0))` ← scaling (explicitly named in PDF)
-- `ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2)`
-- `ToTensor()`
-- `Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])` ← ImageNet stats for ResNet compatibility
-
-**Val/Test Pipeline:**
-- `Resize(256)` → `CenterCrop(224)`
-- `ToTensor()`
-- `Normalize(same as above)`
-
-**Todo List:**
-- [ ] Create `utils/dataset.py` with `ImageFolder` for train/val
-- [ ] Create custom `TestDataset` for unlabelled test folder (reads filenames to preserve IDs)
-- [ ] Implement `get_dataloaders()` with configurable `subset_size`
-- [ ] Verify label mapping: `ImageFolder` assigns alphabetically — confirm `cat=0`, `dog=1`
-- [ ] Sanity check: print class-to-index mapping and one sample batch shape
-
-**Relevant Context:**
-- Train images: `datasets/train/cat/`, `datasets/train/dog/`
-- Test images: `datasets/test/1.jpg` → `500.jpg` (IDs must be preserved for submission)
-- Label convention: `1=dog`, `0=cat` (matches `sampleSubmission.csv`)
-
----
-
-### Sub-Task 2 — Config A: Custom CNN Model
-
-**Status:** [ ] pending
-
-**Intent:**
-Build a CNN from scratch as the baseline for comparison in part (f). Trained briefly (~5 epochs) to get a rough val accuracy — not used for final submission. Demonstrates understanding of CNN design using Week 9 lecture content.
-
-**Architecture:**
-```
-Input: (B, 3, 224, 224)
-→ Conv2d(3, 32, 3, padding=1) + BatchNorm + ReLU + MaxPool2d(2)     → (B, 32, 112, 112)
-→ Conv2d(32, 64, 3, padding=1) + BatchNorm + ReLU + MaxPool2d(2)    → (B, 64, 56, 56)
-→ Conv2d(64, 128, 3, padding=1) + BatchNorm + ReLU + MaxPool2d(2)   → (B, 128, 28, 28)
-→ Conv2d(128, 256, 3, padding=1) + BatchNorm + ReLU + MaxPool2d(2)  → (B, 256, 14, 14)
-→ AdaptiveAvgPool2d(4, 4)                                           → (B, 256, 4, 4)
-→ Flatten                                                           → (B, 4096)
-→ Linear(4096, 512) + ReLU + Dropout(0.5)
-→ Linear(512, 2)                                                    → logits (B, 2)
+Config A (Custom CNN)    → ~75–82%
+Config B (ResNet + SVM)  → ~88–91%
+Config C (ResNet + FC)   → ~91–94%   ← SELECTED
 ```
 
-**Lecture grounding:**
-- Conv + pooling layers → Week 9 (CNN architecture)
-- BatchNorm + Dropout → Week 11 (regularisation)
-- Backpropagation trains all weights from random init → Week 7
+---
 
-**Todo List:**
-- [ ] Create `models/custom_cnn.py` with `CustomCNN(nn.Module)`
-- [ ] Use `BatchNorm2d` after each conv for training stability (Week 11)
-- [ ] Use `Dropout(0.5)` before final linear layer to reduce overfitting (Week 11)
-- [ ] Verify output shape with a dummy tensor
-- [ ] Train for ~5 epochs via `train.py --model cnn --epochs 5` and record val accuracy
+## Notebook Structure
+
+All code lives in `IE4483_Project2.ipynb`. Run cells top-to-bottom in order.
 
 ---
 
-### Sub-Task 3 — Config B & C: ResNet-18 Model
+### Cell 1 — Imports & Reproducibility Seeds
+
+**Report section:** Part b (reproducibility)
+
+**What it does:**
+- Imports all libraries (torch, torchvision, sklearn, matplotlib, pandas, etc.)
+- Sets `torch.manual_seed(42)`, `random.seed(42)`, `numpy.seed(42)`
+- Sets `torch.backends.cudnn.deterministic = True`, `benchmark = False`
+- Detects and prints GPU/CPU device
 
 **Status:** [ ] pending
 
-**Intent:**
-Load pretrained ResNet-18, configure it for two uses:
-- **Config B** — frozen backbone, features fed to SVM (sklearn)
-- **Config C** — unfreeze `layer4` + `fc`, fine-tune end-to-end ← final model
-
-**Strategy:**
-- Load `resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)` — pretrained on ImageNet (Week 8: transfer learning)
-- For Config B: freeze all layers, remove `fc`, extract 512-dim feature vectors → fit `sklearn.svm.SVC`
-- For Config C: freeze early layers, unfreeze `layer4` + `fc`, replace `fc` with `Linear(512, 2)`
-
-**Lecture grounding:**
-- Pretrained backbone → Week 8 (deep learning, feature hierarchies, transfer learning)
-- SVM classifier → Week 6 (SVM)
-- Fine-tuning with lower LR → Week 11 (optimisation for deep models)
-
-**Todo List:**
-- [ ] Create `models/resnet_finetune.py` with `get_resnet18(num_classes, freeze_backbone)` function
-- [ ] Load pretrained weights using `ResNet18_Weights.IMAGENET1K_V1`
-- [ ] For Config B: add `get_resnet18_features()` function that returns 512-dim vectors (removes FC layer)
-- [ ] For Config C: unfreeze `layer4` + `fc`; replace `fc` with `nn.Linear(512, num_classes)`
-- [ ] Verify frozen/unfrozen layers by printing `requires_grad` status
-
 ---
 
-### Sub-Task 4 — Training Loop
+### Cell 2 — Data Loading & Augmentation
+
+**Report section:** Part a
+
+**What it does:**
+- Defines train augmentation pipeline:
+  - `RandomRotation(degrees=15)` ← rotation (PDF Step 2)
+  - `RandomHorizontalFlip(p=0.5)` ← flipping (PDF Step 2)
+  - `RandomResizedCrop(224, scale=(0.8, 1.0))` ← scaling (PDF Step 2)
+  - `ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2)`
+  - `ToTensor()`
+  - `Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])`
+- Defines val/test pipeline: `Resize(256)` → `CenterCrop(224)` → `ToTensor()` → `Normalize`
+- Loads train/val sets with `ImageFolder`
+- Loads test set with a custom `TestDataset` (preserves numeric file IDs)
+- Supports `SUBSET_SIZE` variable (default: 2000 train + 500 val) for fast iteration
+- Verifies label mapping: `cat=0`, `dog=1`
+- Prints one sample batch shape as sanity check
+
+**Key variables set:** `train_loader`, `val_loader`, `test_loader`
 
 **Status:** [ ] pending
 
-**Intent:**
-Implement the main training script for Configs A and C. Config B (SVM) is fitted separately using sklearn after feature extraction.
-
-**Training Configuration:**
-
-| Hyperparameter | Config A (Custom CNN) | Config C (ResNet-18 FC) | Reason |
-|----------------|----------------------|------------------------|--------|
-| Optimizer | Adam | Adam | Adaptive LR, better convergence (Week 11) |
-| Learning Rate | 1e-3 | 1e-4 | Lower for pretrained — avoid destroying learned weights (Week 8) |
-| Scheduler | StepLR (×0.5 every 5 ep) | StepLR (×0.5 every 3 ep) | LR decay as model converges (Week 11) |
-| Loss Function | CrossEntropyLoss | CrossEntropyLoss | Standard for multi-class classification |
-| Batch Size | 32 | 32 | Balance between GPU memory and gradient stability |
-| Epochs | 5 (comparison only) | 15 (full training) | Config A only needs rough accuracy for part (f) |
-| Random Seed | 42 | 42 | Reproducibility (Part b requirement) |
-
-**Config B (SVM) Training:**
-- Extract 512-dim features from frozen ResNet-18 for all train images
-- Fit `sklearn.svm.SVC(kernel='rbf', C=1.0)` on extracted features
-- Evaluate on val set features → record accuracy
-
-**Expected Outcomes:**
-- `train.py` accepts `--model [cnn|resnet]`, `--epochs`, `--lr`, `--batch_size`, `--subset`
-- Trains on GPU if available, falls back to CPU
-- Prints per-epoch train loss, train accuracy, val accuracy
-- Saves best model weights to `checkpoints/<model_name>_best.pth`
-
-**Todo List:**
-- [ ] Create `train.py` with argument parsing
-- [ ] Implement `train_one_epoch()` and `evaluate()` functions
-- [ ] Add `torch.manual_seed(42)`, `random.seed(42)`, `numpy.seed(42)` for reproducibility
-- [ ] Add `torch.backends.cudnn.deterministic = True`, `benchmark = False`
-- [ ] Add SVM feature extraction + fitting in a `train_svm()` function
-- [ ] Use `tqdm` for progress bars
-- [ ] Save best checkpoint when val accuracy improves
-- [ ] Log train/val loss and accuracy per epoch to console and CSV
-
 ---
 
-### Sub-Task 5 — Evaluation & Analysis
+### Cell 3 — Config A: Custom CNN Definition
+
+**Report section:** Part b, Part f
+
+**What it does:**
+- Defines `CustomCNN(nn.Module)` class:
+  ```
+  Input: (B, 3, 224, 224)
+  → Conv2d(3, 32, 3, pad=1) + BatchNorm + ReLU + MaxPool2d(2)   → (B, 32, 112, 112)
+  → Conv2d(32, 64, 3, pad=1) + BatchNorm + ReLU + MaxPool2d(2)  → (B, 64, 56, 56)
+  → Conv2d(64, 128, 3, pad=1) + BatchNorm + ReLU + MaxPool2d(2) → (B, 128, 28, 28)
+  → Conv2d(128, 256, 3, pad=1) + BatchNorm + ReLU + MaxPool2d(2)→ (B, 256, 14, 14)
+  → AdaptiveAvgPool2d(4,4)                                      → (B, 256, 4, 4)
+  → Flatten                                                     → (B, 4096)
+  → Linear(4096, 512) + ReLU + Dropout(0.5)
+  → Linear(512, 2)                                              → logits
+  ```
+- Verifies output shape with a dummy tensor
+
+**Lecture grounding:** Conv+pooling (Week 9), BatchNorm+Dropout (Week 11), backprop (Week 7)
 
 **Status:** [ ] pending
 
-**Intent:**
-Compute final validation accuracy for all 3 configs, plot training curves, and produce correct/incorrect prediction visualisations for the report (parts d, e, f).
-
-**Expected Outcomes:**
-- Comparison table of all 3 configs for part (f)
-- Training curves (loss + accuracy vs. epoch) for Config A and C saved as PNG
-- 3–5 sample **val** images with predicted vs. actual label (correct and incorrect cases) for part (e)
-- Confusion matrix for Config C on val set
-
-**Todo List:**
-- [ ] Implement `plot_training_curves(train_losses, val_accs)` in `utils/evaluate.py`
-- [ ] Implement `show_sample_predictions(model, dataloader, n=8)` — correct and incorrect cases from val set
-- [ ] Compute confusion matrix using `sklearn.metrics.confusion_matrix`
-- [ ] Build 3-config comparison table (Config A / B / C val accuracy)
-- [ ] Save all figures to `outputs/` for report inclusion
-- [ ] For part (e): select 1–2 misclassified val images and discuss using Week 9 terminology (texture, spatial features, pose, background clutter)
-
-**Note — Part (e):** Test set is unlabelled so ground truth is unknown. Val set is used for correct/incorrect analysis. State this explicitly in the report.
-
 ---
 
-### Sub-Task 6 — Test Prediction & submission.csv
+### Cell 4 — Config B & C: ResNet-18 Definition
+
+**Report section:** Part b, Part f
+
+**What it does:**
+- Defines `get_resnet18(num_classes, mode)` where `mode` is `'finetune'` or `'features'`:
+  - `'features'` (Config B): freeze all layers, remove FC, return 512-dim vectors
+  - `'finetune'` (Config C): freeze early layers, unfreeze `layer4` + `fc`, replace FC with `Linear(512, num_classes)`
+- Loads `ResNet18_Weights.IMAGENET1K_V1`
+- Prints frozen/unfrozen layer status for verification
+
+**Lecture grounding:** Transfer learning (Week 8), SVM (Week 6), fine-tuning (Week 11)
 
 **Status:** [ ] pending
 
-**Intent:**
-Run the best Config C checkpoint on the 500 test images and generate `submission.csv`.
-
-**Expected Outcomes:**
-- `predict.py` loads Config C checkpoint and runs inference on `datasets/test/`
-- Output `submission.csv` has exactly 500 rows, columns `id` and `label`
-- `id` matches image filename integer (`5.jpg` → `id=5`)
-- `label` is `1` for dog and `0` for cat
-
-**Todo List:**
-- [ ] Create `predict.py` that loads model from `--checkpoint` argument
-- [ ] Sort test images by numeric ID before inference
-- [ ] Apply val/test transform pipeline (no augmentation)
-- [ ] Write results to `submission.csv` using pandas
-- [ ] Verify: row count = 500, label values are only 0 or 1
-
 ---
 
-### Sub-Task 7 — CIFAR-10 Extension (Parts g & h)
+### Cell 5 — Training Loop & Train All Configs
+
+**Report section:** Parts b, c, d
+
+**What it does:**
+- Defines `train_one_epoch(model, loader, optimizer, criterion, device)` 
+- Defines `evaluate(model, loader, criterion, device)` → returns loss + accuracy
+- Defines `train_svm(train_loader, val_loader, device)` for Config B:
+  - Extracts 512-dim ResNet features for all train/val images
+  - Fits `sklearn.svm.SVC(kernel='rbf', C=1.0)` 
+  - Returns val accuracy
+- **Trains Config A** (~5 epochs, Adam lr=1e-3, StepLR ×0.5 every 5 ep) → records val accuracy
+- **Trains Config B** (SVM on ResNet features) → records val accuracy
+- **Trains Config C** (15 epochs, Adam lr=1e-4, StepLR ×0.5 every 3 ep) → records best val accuracy
+- Saves best Config C checkpoint to `checkpoints/resnet_best.pth`
+- Prints per-epoch: train loss, train accuracy, val accuracy
+
+**Hyperparameters:**
+
+| Parameter | Config A | Config C | Reason |
+|-----------|---------|---------|--------|
+| Optimizer | Adam | Adam | Adaptive LR (Week 11) |
+| Learning Rate | 1e-3 | 1e-4 | Lower for pretrained (Week 8) |
+| Scheduler | StepLR ×0.5/5ep | StepLR ×0.5/3ep | LR decay (Week 11) |
+| Loss | CrossEntropyLoss | CrossEntropyLoss | Standard multi-class |
+| Batch Size | 32 | 32 | GPU memory vs. stability |
+| Epochs | 5 | 15 | Config A for comparison only |
+| Seed | 42 | 42 | Reproducibility |
 
 **Status:** [ ] pending
 
-**Intent:**
-Adapt Config C (ResNet-18 + FC) for CIFAR-10 10-class classification. Then simulate class imbalance and apply two fixes.
+---
 
-**CIFAR-10 Dataset Facts (cite in report):**
-- Source: Krizhevsky, Nair, and Hinton — https://www.cs.toronto.edu/~kriz/cifar.html
-- 60,000 colour images at 32×32 pixels across 10 mutually exclusive classes
-- Training: 50,000 images (5,000 per class — perfectly balanced)
-- Test: 10,000 images (1,000 per class)
-- Loaded automatically via `torchvision.datasets.CIFAR10(root='./data', download=True)` — no manual download needed
-- Downloaded to `data/` folder (~163 MB, first run only)
+### Cell 6 — Model Comparison (Part f)
 
-**CIFAR-10 Class Labels:**
+**Report section:** Part f
 
-| Label | Class | Label | Class |
-|-------|-------|-------|-------|
-| 0 | airplane | 5 | dog |
-| 1 | automobile | 6 | frog |
-| 2 | bird | 7 | horse |
-| 3 | cat | 8 | ship |
-| 4 | deer | 9 | truck |
+**What it does:**
+- Builds a summary comparison table: Config A / B / C val accuracy
+- Plots training curves (loss + accuracy vs. epoch) for Config A and C side-by-side
+- Runs Config C once more **without augmentation** to show augmentation's impact
+- Saves all figures to `outputs/`
+- Prints conclusion: Config C is selected as final model and why
 
-**Changes vs. Dogs vs. Cats (Part g):**
-- Output layer: `Linear(512, 10)` instead of 2 — via `get_resnet18(num_classes=10)`
-- Input: CIFAR-10 images are 32×32 — resize to 224×224 for ResNet compatibility
-- Loss: `CrossEntropyLoss` unchanged — now 10-class
-- Dataset loaded via `torchvision.datasets.CIFAR10` instead of `ImageFolder`
-- No custom test loader needed — CIFAR-10 test set has ground truth labels
-
-**Class Imbalance Simulation (Part h):**
-- CIFAR-10 is perfectly balanced by default — imbalance must be artificially created
-- Reduce classes 0, 1, 2 (airplane, automobile, bird) to 20% → 1,000 samples each
-- Classes 3–9 remain at full 5,000 samples each
-
-**Two Imbalance Fixes:**
-1. **Weighted CrossEntropyLoss** — compute inverse-frequency class weights, pass to `nn.CrossEntropyLoss(weight=...)` — cost-sensitive learning (Week 11)
-2. **WeightedRandomSampler** — assign per-sample weights inversely proportional to class frequency, oversample minority classes during training
-
-**Results Table (4 configs to train and report):**
-
-| Config | Setup | Expected outcome |
-|--------|-------|-----------------|
-| 1 | Balanced CIFAR-10 | Best accuracy baseline |
-| 2 | Imbalanced, no fix | Drops on minority classes |
-| 3 | Imbalanced + weighted loss | Improves minority class accuracy |
-| 4 | Imbalanced + weighted sampler | Further improves balance |
-
-**Todo List:**
-- [ ] Create `cifar10/train_cifar10.py` adapting the Dogs vs. Cats training loop
-- [ ] Use `get_resnet18(num_classes=10)` — reuse existing model wrapper
-- [ ] Create `cifar10/imbalance.py` with `get_class_weights()` and `get_weighted_sampler()` utilities
-- [ ] Simulate imbalance by subsampling classes 0, 1, 2 to 20% in training set
-- [ ] Train all 4 configurations and log test accuracy for each
-- [ ] Build results table comparing all 4 configs for part (h)
+**Status:** [ ] pending
 
 ---
 
-## Key Steps Summary (Execution Order)
+### Cell 7 — Evaluation & Sample Predictions (Parts d, e)
+
+**Report section:** Parts d, e
+
+**What it does:**
+- Loads best Config C checkpoint
+- Runs full val set evaluation → prints final val accuracy + confusion matrix
+- Shows 4 correctly classified + 4 incorrectly classified val images with predicted vs. actual label
+- Saves confusion matrix and sample prediction grid to `outputs/`
+- For part (e): notes that test set is unlabelled, val set used as proxy
+
+**Status:** [ ] pending
+
+---
+
+### Cell 8 — Generate submission.csv (Part d)
+
+**Report section:** Part d
+
+**What it does:**
+- Loads best Config C checkpoint
+- Runs inference on all 500 test images (no augmentation, val/test transforms only)
+- Sorts by numeric ID (`5.jpg` → `id=5`)
+- Writes `submission.csv` with columns `id` and `label` (1=dog, 0=cat)
+- Verifies: 500 rows, label values are only 0 or 1
+- Prints first 10 rows as sanity check
+
+**Status:** [ ] pending
+
+---
+
+### Cell 9 — CIFAR-10 Extension (Part g)
+
+**Report section:** Part g
+
+**What it does:**
+- Loads CIFAR-10 via `torchvision.datasets.CIFAR10(root='./data', download=True)`
+- Resizes 32×32 images to 224×224 for ResNet compatibility
+- Creates `get_resnet18(num_classes=10, mode='finetune')` — reuses Cell 4 function
+- Trains for 10 epochs (same Adam lr=1e-4 setup as Config C)
+- Reports test accuracy on CIFAR-10 test set (10,000 labelled images)
+- Documents changes vs. Dogs vs. Cats:
+  - Output `Linear(512, 10)` instead of 2
+  - Dataset loader: `CIFAR10` instead of `ImageFolder`
+  - No custom test loader needed (ground truth available)
+
+**CIFAR-10 facts to cite in report:**
+- 60,000 colour images, 32×32, 10 classes
+- 50,000 train (5,000/class, balanced) + 10,000 test
+- Source: Krizhevsky, Nair, Hinton — https://www.cs.toronto.edu/~kriz/cifar.html
+
+**Status:** [ ] pending
+
+---
+
+### Cell 10 — Class Imbalance (Part h)
+
+**Report section:** Part h
+
+**What it does:**
+- Simulates imbalance: reduces classes 0, 1, 2 (airplane, automobile, bird) to 20% → ~1,000 samples each; classes 3–9 stay at 5,000
+- Trains 4 configurations and records test accuracy for each:
+
+| Config | Setup |
+|--------|-------|
+| 1 | Balanced CIFAR-10 (baseline from Cell 9) |
+| 2 | Imbalanced, no fix |
+| 3 | Imbalanced + Weighted CrossEntropyLoss |
+| 4 | Imbalanced + WeightedRandomSampler |
+
+- **Fix 1 — Weighted CrossEntropyLoss:** computes inverse-frequency class weights, passes to `nn.CrossEntropyLoss(weight=...)` (Week 11 cost-sensitive learning)
+- **Fix 2 — WeightedRandomSampler:** assigns per-sample weights inversely proportional to class frequency, oversamples minority classes during DataLoader construction
+- Prints per-class accuracy for all 4 configs to show minority class improvement
+- Builds final results table comparing all 4 configs
+
+**Status:** [ ] pending
+
+---
+
+## Execution Order
 
 ```
-Step 1   Setup venv and install packages
-Step 2   Implement data pipeline (Sub-Task 1)
-Step 3   Build Custom CNN — Config A (Sub-Task 2)
-Step 4   Build ResNet-18 wrapper — Config B & C (Sub-Task 3)
-Step 5   Implement training loop (Sub-Task 4)
-Step 6   Train Config A for ~5 epochs → record rough val accuracy
-Step 7   Extract ResNet features → fit SVM (Config B) → record val accuracy
-Step 8   Train Config C fully (15 epochs) → record best val accuracy
-Step 9   Select Config C as final model, justify using lecture concepts
-Step 10  Evaluation + plots — training curves, confusion matrix, sample predictions (Sub-Task 5)
-Step 11  Generate submission.csv using Config C (Sub-Task 6)
-Step 12  CIFAR-10 extension — parts g and h (Sub-Task 7)
+Cell 1  → Imports & seeds
+Cell 2  → Data loading
+Cell 3  → Custom CNN (Config A) definition
+Cell 4  → ResNet-18 (Config B & C) definition
+Cell 5  → Train all 3 configs
+Cell 6  → Model comparison + plots (Part f)
+Cell 7  → Evaluation + sample predictions (Parts d, e)
+Cell 8  → Generate submission.csv (Part d)
+Cell 9  → CIFAR-10 training (Part g)
+Cell 10 → Class imbalance experiments (Part h)
 ```
+
+Run all cells top-to-bottom. Cell 5 is the longest (training). Cells 6–10 depend on Cell 5 completing.
 
 ---
 
 ## Report Mapping
 
-Each row maps the exact document question to the sub-task that produces the answer.
-
-### Part a — 10%
-> *"State the amount of image data that you used to form your training set and testing set. Describe the data pre-processing procedures and image augmentations (if any)."*
-
-| What to write | Where it comes from |
-|--------------|-------------------|
-| How many train/val images used | Sub-Task 1 — `subset_size` parameter (start: 2,000 train + 500 val) |
-| Preprocessing steps | Sub-Task 1 — resize to 224×224, normalize with ImageNet stats |
-| Augmentations applied | Sub-Task 1 — `RandomRotation`, `RandomHorizontalFlip`, `RandomResizedCrop`, `ColorJitter` |
-| Lecture week to cite | Week 9 (CNN input preprocessing) |
-
----
-
-### Part b — 20%
-> *"Select or build at least one machine learning model to construct your classifier. Clearly describe the model you use, including a figure of model architecture, the input and output dimensions, structure of the model, loss function(s), training strategy, etc. Include your code and instructions on how to run the code. Ensure reproducibility."*
-
-| What to write | Where it comes from |
-|--------------|-------------------|
-| Model selected | Sub-Task 3 — Config C: ResNet-18 + Linear FC, fine-tuned |
-| Why this model was chosen | Sub-Tasks 2, 3 — compared with Config A and B first |
-| Architecture figure + dims | Sub-Task 2 (Config A) and Sub-Task 3 (Config C) — layer-by-layer diagrams in plan |
-| Loss function | Sub-Task 4 — `CrossEntropyLoss` for both |
-| Training strategy | Sub-Task 4 — Adam, StepLR, batch size 32, 15 epochs for Config C |
-| Code + run instructions | `train.py --model resnet --epochs 15 --lr 1e-4 --subset 2000` |
-| Reproducibility | Sub-Task 4 — `seed=42`, `cudnn.deterministic=True` |
-| Lecture weeks to cite | Week 7 (backprop), Week 8 (deep learning, transfer learning), Week 9 (CNN), Week 11 (regularisation) |
-
----
-
-### Part c — 10%
-> *"Discuss how you consider and determine the parameters (e.g., learning rate, etc.) / settings of your model as well as your reasons of doing so."*
-
-| What to write | Where it comes from |
-|--------------|-------------------|
-| Learning rate choice (1e-4) | Sub-Task 4 — lower LR for pretrained model to avoid overwriting ImageNet weights (Week 8) |
-| Optimiser choice (Adam) | Sub-Task 4 — adaptive LR, better convergence than SGD (Week 11) |
-| Scheduler (StepLR) | Sub-Task 4 — LR decays as model converges, avoids overshooting (Week 11) |
-| Batch size (32) | Sub-Task 4 — balance between GPU memory and stable gradient estimates |
-| Epochs (15) | Sub-Task 4 — sufficient for fine-tuning; best checkpoint saved automatically |
-| Dropout (0.5) | Sub-Task 2 — reduces overfitting on limited data (Week 11) |
-| Lecture weeks to cite | Week 7 (gradient descent), Week 11 (optimisation, regularisation) |
-
----
-
-### Part d — 20%
-> *"Report the classification accuracy on validation set. Apply the classifier(s) built to the test set. Submit the submission.csv with the results you obtained."*
-
-| What to write | Where it comes from |
-|--------------|-------------------|
-| Val accuracy (Config C) | Sub-Task 4 — best val accuracy logged during training |
-| Val accuracy (Config A, B) | Sub-Tasks 2, 4 — recorded for comparison |
-| submission.csv | Sub-Task 6 — `predict.py` generates 500-row CSV from Config C checkpoint |
-| CSV format | `id` (1–500) + `label` (1=dog, 0=cat) — matches `sampleSubmission.csv` |
-
----
-
-### Part e — 10%
-> *"Analyse some correctly and incorrectly classified (if any) samples in the test set. Select 1–2 cases to discuss the strength and weakness of the model."*
-
-| What to write | Where it comes from |
-|--------------|-------------------|
-| Sample images shown | Sub-Task 5 — `show_sample_predictions()` on **val set** (test set is unlabelled) |
-| Correct cases | Images where model is confident and correct — clear frontal view, uncluttered background |
-| Incorrect cases | Images where model fails — occluded animal, unusual pose, background clutter |
-| Strength discussion | Sub-Task 5 — high accuracy on standard images; good spatial feature extraction (Week 9) |
-| Weakness discussion | Sub-Task 5 — fails when spatial features are ambiguous (Week 9 — receptive field, texture) |
-| ⚠️ Note | Test set has no ground truth labels — state in report that val set is used as proxy |
-
----
-
-### Part f — 10%
-> *"Discuss how different choice of models and data processing may affect the project in terms of accuracy on validation set."*
-
-| What to write | Where it comes from |
-|--------------|-------------------|
-| Model comparison table | Sub-Task 5 — Config A (~75–82%) vs. Config B (~88–91%) vs. Config C (~91–94%) |
-| Why Config A is weakest | No pretrained weights, trains from random init — Week 7, 9 |
-| Why Config B is middle | Good features (ResNet) but SVM is a fixed classifier, no end-to-end learning — Week 6, 8 |
-| Why Config C is best | Pretrained features + fine-tuned end-to-end — Week 8, 11 |
-| Data processing effect | Run Config C with/without augmentation → show accuracy difference |
-| Conventional vs. deep | Decision Tree / SVM (Weeks 5–6) lose spatial structure; CNNs (Week 9) preserve it |
-| Lecture weeks to cite | Week 5 (Decision Tree), Week 6 (SVM), Week 8 (deep learning), Week 9 (CNN), Week 11 (regularisation) |
-
----
-
-### Part g — 10%
-> *"Apply and improve your classification algorithm to a multi-category image classification problem for CIFAR-10. Describe details about the dataset and classification problem. Explain how your algorithm can tackle this problem, and what changes you make comparing to solving Dogs vs. Cats problem. Report your results for the testing set of CIFAR-10."*
-
-| What to write | Where it comes from |
-|--------------|-------------------|
-| CIFAR-10 description | Sub-Task 7 — 60,000 images, 32×32, 10 classes, 50K train / 10K test, perfectly balanced |
-| Changes from Dogs vs. Cats | Sub-Task 7 — output `Linear(512, 10)`, dataset loader change, no custom test set needed |
-| How ResNet-18 handles it | Week 8 — same pretrained features, generalise to 10-class output |
-| Test accuracy | Sub-Task 7 — Config 1 (balanced) test accuracy reported |
-| Lecture weeks to cite | Week 8 (transfer learning), Week 9 (CNN for multi-class) |
-
----
-
-### Part h — 10%
-> *"Train the classifier for (g), while some of the classes in CIFAR-10 training dataset contains much fewer labelled data. How can you improve your algorithm to tackle the data unbalancing issue? Describe and justify at least 2 approaches you use."*
-
-| What to write | Where it comes from |
-|--------------|-------------------|
-| How imbalance was created | Sub-Task 7 — classes 0, 1, 2 reduced to 1,000 samples each; classes 3–9 stay at 5,000 |
-| Effect of imbalance (no fix) | Sub-Task 7 — Config 2 accuracy drops on minority classes |
-| Fix 1: Weighted CrossEntropyLoss | Sub-Task 7 — inverse-frequency weights; cost-sensitive learning — Week 11 |
-| Fix 2: WeightedRandomSampler | Sub-Task 7 — oversample minority classes during training |
-| Justification for both | Each approach attacks imbalance differently: loss weighting vs. sampling strategy |
-| Results comparison | Sub-Task 7 — 4-row table: balanced / imbalanced / fix1 / fix2 |
-| Lecture weeks to cite | Week 11 (optimisation, cost-sensitive learning) |
-
----
-
-### Summary Table
-
-| Part | Marks | Sub-Tasks | Lecture Weeks |
-|------|-------|-----------|--------------|
-| a | 10% | 1 | 9 |
-| b | 20% | 2, 3, 4 | 7, 8, 9, 11 |
-| c | 10% | 4 | 7, 11 |
-| d | 20% | 4, 6 | — |
-| e | 10% | 5 | 9 |
-| f | 10% | 2, 3, 4, 5 | 5, 6, 8, 9, 11 |
-| g | 10% | 7 | 8, 9 |
-| h | 10% | 7 | 11 |
+| Part | Marks | Notebook Cells | Lecture Weeks |
+|------|-------|---------------|--------------|
+| a | 10% | 2 | 9 |
+| b | 20% | 3, 4, 5 | 7, 8, 9, 11 |
+| c | 10% | 5 | 7, 11 |
+| d | 20% | 5, 7, 8 | — |
+| e | 10% | 7 | 9 |
+| f | 10% | 3, 4, 5, 6 | 5, 6, 8, 9, 11 |
+| g | 10% | 9 | 8, 9 |
+| h | 10% | 10 | 11 |
 | **Total** | **100%** | | |
 
 ---
 
 ## Lecture Grounding (IE4483 — Weeks 5 to 11)
-
-Use these specific lecture weeks to ground your report analysis and justify design decisions.
 
 ### Week 5 — Decision Tree (ID3/C4.5) — Lectures 13–15
 - **Use in part (f):** Conventional classifiers like Decision Trees split on individual pixel features — they lose all spatial structure. This justifies moving to CNNs.
@@ -570,18 +401,20 @@ Use these specific lecture weeks to ground your report analysis and justify desi
 
 ## Reproducibility
 
-- Fix `torch.manual_seed(42)`, `random.seed(42)`, `numpy.seed(42)` at the top of all scripts
+- Fix `torch.manual_seed(42)`, `random.seed(42)`, `numpy.seed(42)` at the top of Cell 1
 - Set `torch.backends.cudnn.deterministic = True` and `torch.backends.cudnn.benchmark = False`
 - Record exact package versions via `pip freeze > requirements.txt` after environment setup
+- Notebook cells must be run top-to-bottom in order for reproducibility
 
 ---
 
 ## Notes
 
-- `venv/` must not be committed — add to `.gitignore`
-- CIFAR-10 in `data/` is auto-downloaded on first run — do not manually place files there
-- CIFAR-10 is perfectly balanced (5,000/class) — part (h) requires artificial imbalance simulation
-- Test set (Dogs vs. Cats) is unlabelled — part (e) uses **val set** where ground truth is known; state this in the report
-- Only **Config C** is the final selected model — Configs A and B exist for comparison and part (f) only
+- `venv/` must not be committed — already in `.gitignore`
+- `datasets/` must not be committed — already in `.gitignore` (too large for GitHub)
+- CIFAR-10 in `data/` is auto-downloaded on first run of Cell 9 — do not manually place files there
+- CIFAR-10 is perfectly balanced (5,000/class) — Cell 10 requires artificial imbalance simulation
+- Test set (Dogs vs. Cats) is unlabelled — Cell 7 uses **val set** where ground truth is known; state this in the report
+- Only **Config C** is the final selected model — Configs A and B exist for comparison (Cell 6, Part f) only
 - Reference: Krizhevsky, A. (2009). *Learning Multiple Layers of Features from Tiny Images*
 - PDF references: VGG [Simonyan & Zisserman, 2014] and ResNet [He et al., 2016] — cite both even if only ResNet is used
