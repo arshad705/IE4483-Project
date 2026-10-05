@@ -1,7 +1,12 @@
 datasets/
+data/
 .DS_Store
 __pycache__/
 *.pyc
+*.pth
+*.zip
 .ipynb_checkpoints/
 checkpoints/
 venv/
+.venv/
+__MACOSX/
