@@ -27,7 +27,7 @@ nest-asyncio2==1.7.3
 networkx==3.6.1
 numpy==2.5.2
 packaging==26.3
-pandas==3.0.6
+pandas==2.3.3
 parso==0.8.7
 pillow==12.3.0
 platformdirs==4.12.3
@@ -37,6 +37,7 @@ pure_eval==0.2.4
 Pygments==2.21.0
 pyparsing==3.3.3
 python-dateutil==2.9.0.post0
+pytz==2026.5
 pyzmq==27.2.0
 scikit-learn==1.9.1
 scipy==1.18.1
