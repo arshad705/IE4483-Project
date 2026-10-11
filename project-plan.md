@@ -43,11 +43,11 @@ Any change to `common.py` after the freeze means retraining the affected configs
 
 ### Output conventions
 
-**Config IDs:** `A`, `B`, `Bp` (B′), `C`, `C-noaug`, `cifar-bal`, `cifar-imb`, `cifar-imb-wloss`, `cifar-imb-sampler`
+**Config IDs:** `A`, `B`, `Bp` (B′), `C`, `C-noaug`, `sweep-lr1e-3`, `sweep-lr1e-4`, `sweep-lr1e-5`, `cifar-bal`, `cifar-imb`, `cifar-imb-wloss`, `cifar-imb-sampler`
 
 | File | Path | Committed? |
 |------|------|-----------|
-| Checkpoint | `checkpoints/<model>_<config>_seed<N>.pth` (e.g. `resnet18_C_seed42.pth`) | No — shared Drive (link in group chat) |
+| Checkpoint | `checkpoints/<model>_<config>_seed<N>.pth` (e.g. `resnet18_C_seed42.pth`, `linear_Bp_seed42.pth`) | No — shared Drive (link in group chat) |
 | Per-epoch results | `outputs/results_<config>_seed<N>.csv` | Yes |
 | Per-image val predictions | `outputs/preds_<config>_seed<N>.csv` (`path, label, pred, prob_dog`) | Yes |
 | Per-class accuracy (CIFAR) | `outputs/perclass_<config>_seed<N>.csv` | Yes |
@@ -71,14 +71,14 @@ config, seed, epoch, train_loss, train_acc, eval_loss, eval_acc, eval_split, lr,
 | **Step 1** — Load train/val/test from provided dataset | `common.py` — `ImageFolder` + custom `TestDataset` |
 | **Step 2** — Preprocess + augment (scaling, rotation, flipping) | `common.py` — `RandomResizedCrop` + `RandomRotation` + `RandomHorizontalFlip` + `ColorJitter` |
 | **Step 3** — Design classification model (CNN or pretrained backbone) | `01` (Config A), `02` (Configs B, B′, C); `get_resnet18()` in `common.py` |
-| **Step 4** — Try different parameters; train on train set, validate on val set | `01`, `02` — val set never used for weight updates |
+| **Step 4** — Try different parameters; train on train set, validate on val set | `02` — learning-rate sweep for Config C (1e-3 / 1e-4 / 1e-5); all configs validated on val, never trained on it |
 | **Step 5** — Generate submission.csv (id + label, 1=dog, 0=cat) | `02` — `common.write_submission()` with format checks |
 | **Part a** — State image counts + describe preprocessing | `02` prints counts; transforms in `common.py` |
 | **Part b** — Model, architecture, dims, loss, training, code, reproducibility | `common.py`, `01`, `02` — seed fixed, one trainer, GPU + commit logged |
-| **Part c** — Discuss parameter choices + reasons | Hyperparameter table below; justified in report |
+| **Part c** — Discuss parameter choices + reasons | Hyperparameter table below + LR sweep results (`results_sweep-*.csv`) as evidence |
 | **Part d** — Val accuracy + submission.csv | `02` (training + submission), `03` (final table) |
 | **Part e** — Analyse correct/incorrect samples | `03` — from `preds_C_seed42.csv` (val set; test set unlabelled) |
-| **Part f** — Compare different models and data processing | `03` — reads all results CSVs (A, B, B′, C, C-noaug) |
+| **Part f** — Compare different models and data processing | `03` — comparison chain B → B′ → C-noaug → C (one change per step) + A vs C |
 | **Part g** — CIFAR-10 adaptation, describe changes, report test results | `04` |
 | **Part h** — Handle class imbalance with ≥2 approaches | `04` — Weighted loss + WeightedRandomSampler |
 
@@ -144,27 +144,40 @@ IE4483-Project/
 
 ## Model Configurations (for Part f Comparison)
 
-Four configurations are trained and compared. Only **Config C** is used for final submission. Config B′ isolates the effect of fine-tuning from classifier type. **C-noaug** (Config C without augmentation) shows the effect of data augmentation.
+Five configurations are trained and compared. Only **Config C** is used for final submission.
 
-| Config | Model | Classifier | Training | Purpose |
-|--------|-------|-----------|---------|---------|
-| **A**  | Custom CNN (4 conv blocks, scratch) | Linear FC | Train from scratch | Baseline — Week 9 CNN |
-| **B**  | ResNet-18 (frozen backbone) | SVM (sklearn) | Extract features → fit SVM | Week 6 SVM + Week 8 features |
-| **B′** | ResNet-18 (frozen backbone) | Linear FC | Frozen backbone, train FC only | Isolates classifier type (SVM vs FC) |
-| **C**  | ResNet-18 (unfreeze layer4 + fc) | Linear FC (fine-tuned) | Fine-tune layer4 + fc | **Final model** — Week 8 transfer learning |
-| **C-noaug** | Same as C | Same as C | No train augmentation | Data-processing comparison (Part f) |
+| Config | Model | Classifier | Train augmentation | What learns | Purpose |
+|--------|-------|-----------|-----|---------|---------|
+| **A**  | Custom CNN (4 conv blocks) | Linear FC | Yes | Everything, from scratch | Baseline — Week 9 CNN |
+| **B**  | ResNet-18 (frozen) | SVM (sklearn) | No | SVM only (on fixed features) | Week 6 SVM + Week 8 features |
+| **B′** | ResNet-18 (frozen) | Linear FC | No | FC only (on the same fixed features as B) | Isolates classifier type |
+| **C-noaug** | ResNet-18 (layer4 unfrozen) | Linear FC | No | layer4 + FC | Isolates fine-tuning |
+| **C**  | ResNet-18 (layer4 unfrozen) | Linear FC | Yes | layer4 + FC | **Final model** — isolates augmentation |
 
-**Why B′ is needed (Part f):**
-B and C change *two things at once* (frozen→fine-tuned backbone AND SVM→FC classifier). Adding B′ allows clean isolation:
-- B → B′: same frozen backbone, SVM replaced by FC → isolates **classifier type**
-- B′ → C: same FC classifier, backbone unfrozen → isolates **fine-tuning effect**
+### Comparison chain (Part f)
 
-**Expected val accuracy:**
+Each step changes **exactly one thing**, so any accuracy difference can be attributed to that change:
+
 ```
-Config A  (Custom CNN)          → ~75–82%
-Config B  (Frozen ResNet + SVM) → ~88–91%
-Config B' (Frozen ResNet + FC)  → ~89–92%
-Config C  (Fine-tuned ResNet)   → ~91–94%   ← SELECTED
+B ──────────► B′ ──────────────► C-noaug ──────────► C
+   SVM → FC       frozen → fine-tuned     no aug → aug
+ (classifier)       (fine-tuning)         (augmentation)
+```
+
+- **B → B′:** same features, same inputs; only the classifier changes (SVM vs linear layer).
+- **B′ → C-noaug:** same head, same inputs (no augmentation); only whether layer4 learns. The LR also differs (1e-3 vs 1e-4), justified because a new layer trained from scratch needs a larger step than pretrained weights (Week 8).
+- **C-noaug → C:** identical model and schedule; only augmentation changes (Week 11). Compare val accuracy **and the train–val gap** (overfitting).
+- **A vs C:** scratch CNN vs pretrained ResNet at the same training budget. **Limitation (state in report):** architecture and pretraining both differ, so this shows the combined effect, not pretraining alone. A ResNet-18-from-scratch run would separate them but is not planned (compute).
+
+**Why B and B′ use fixed features:** the backbone is frozen and its BatchNorm is fixed, so without augmentation every image gives the same 512 numbers every epoch. Features are extracted **once** (eval transforms, `augment=False`) and reused by both B and B′ — mathematically identical to running the frozen network each epoch, but B′'s 15 epochs take seconds instead of 15 full passes.
+
+**Expected val accuracy** (estimates only — replace with measured results):
+```
+Config A       (Custom CNN, 15 ep)     → ~80–88%
+Config B       (Frozen ResNet + SVM)   → ~88–92%
+Config B'      (Frozen ResNet + FC)    → ~88–92%
+Config C-noaug (Fine-tuned, no aug)    → ~92–96%
+Config C       (Fine-tuned ResNet)     → ~93–96%   ← SELECTED
 ```
 
 ---
@@ -218,8 +231,8 @@ Build order: **`common.py` first** (everything imports it) → `01`, `02`, `04` 
   → Linear(512, 2)                                              → logits
   ```
 - Verifies output shape with a dummy tensor
-- Trains Config A with `common.fit` (5 epochs, Adam lr=1e-3, StepLR ×0.5/5ep)
-  - ⚠️ Config A is a baseline only. Unequal epochs vs. C are intentional and stated in the report.
+- Trains Config A with `common.fit` (up to 15 epochs, Adam lr=1e-3, StepLR ×0.5/3ep, train augmentation on; best-val checkpoint) — same budget and schedule as C
+- `keep_bn_train=None` in `fit()`: Config A trains all its BatchNorm layers (nothing is frozen)
 
 **Lecture grounding:** Conv+pooling (Week 9), BatchNorm+Dropout (Week 11), backprop (Week 7)
 
@@ -231,13 +244,17 @@ Build order: **`common.py` first** (everything imports it) → `01`, `02`, `04` 
 
 **Report section:** Parts a, b, c, d, f | **Owner:** TBD
 
-- Prints dataset image counts (Part a)
-- **Config B:** extract 512-dim frozen ResNet-18 features for train/val → `sklearn.svm.SVC(kernel='rbf', C=1.0)` → val accuracy (one results row)
-- **Config B′:** frozen backbone + FC, 5 epochs, Adam lr=1e-3, StepLR ×0.5/5ep
-- **Config C:** unfreeze layer4 + fc, 15 epochs, Adam lr=1e-4, StepLR ×0.5/3ep; best checkpoint by val accuracy
-- **Config C-noaug:** identical to C, train transform without augmentation
-- Saves val predictions for C (`preds_C_seed42.csv`) for Part e
-- Writes `submission.csv` from the best Config C checkpoint via `common.write_submission`
+Run in this order:
+
+1. **Dataset counts** — `describe_dataset()` (Part a)
+2. **LR sweep for C (always on the subset)** — `get_dataloaders(full_run=False)` regardless of `FULL_RUN`; Config C setup for 3 epochs at lr = 1e-3, 1e-4, 1e-5 → `results_sweep-lr<x>_seed42.csv`. All three on one machine in one go. Purpose: evidence for the LR choice in Part c. Takes minutes.
+3. **Shared fixed features (B and B′)** — `get_dataloaders(FULL_RUN, augment=False)` (⚠️ **must** be `augment=False`, otherwise features come from randomly augmented images) → `get_resnet18(mode="features")` → `extract_features()` once for train and val; keep in memory
+4. **Config B:** `sklearn.svm.SVC(kernel='rbf', C=1.0)` on the features → `save_result_row("B", acc)`
+5. **Config B′:** `nn.Linear(512, 2)` trained with `fit(..., model_name="linear")` on `TensorDataset` loaders of the same features; up to 15 epochs, Adam lr=1e-3, StepLR ×0.5/3ep. Runs in seconds.
+6. **Config C-noaug:** `get_dataloaders(FULL_RUN, augment=False)`; layer4 + fc; up to 15 epochs, Adam lr=1e-4, StepLR ×0.5/3ep; `keep_bn_train=("layer4",)`
+7. **Config C:** identical to C-noaug except `augment=True` (unless the sweep clearly favours another LR — then use it for both C and C-noaug and record why)
+8. `predict_val()` for C → `preds_C_seed42.csv` (Part e)
+9. `write_submission()` from the best Config C checkpoint
 
 **Lecture grounding:** Transfer learning (Week 8), SVM (Week 6), fine-tuning (Week 11)
 
@@ -249,13 +266,14 @@ Build order: **`common.py` first** (everything imports it) → `01`, `02`, `04` 
 
 **Report section:** Parts d, e, f | **Owner:** TBD
 
-- Reads `outputs/results_*.csv` → comparison table: A / B / B′ / C / C-noaug val accuracy
-- Conclusions from the comparison:
-  - A vs C → pretrained weights matter (Week 8)
-  - B vs B′ → SVM vs FC on same frozen features (classifier type)
-  - B′ vs C → frozen vs fine-tuned backbone, same FC head (fine-tuning effect)
-  - C vs C-noaug → effect of data augmentation
-- Training curves (loss + accuracy vs epoch) for A, B′, C
+- Reads `outputs/results_*.csv` → comparison table: A / B / B′ / C-noaug / C best val accuracy (+ epoch reached)
+- Conclusions follow the comparison chain (see Model Configurations):
+  - B → B′ → classifier type (SVM vs linear layer, same features) — Week 6
+  - B′ → C-noaug → fine-tuning effect (frozen vs layer4 trained) — Week 8
+  - C-noaug → C → augmentation effect: val accuracy **and train–val gap** — Week 11
+  - A vs C → scratch CNN vs pretrained ResNet at equal budget (architecture + pretraining combined; state the limitation) — Weeks 8, 9
+- LR sweep table/plot from `results_sweep-*.csv` (Part c)
+- Training curves (loss + accuracy vs epoch) for A, B′, C-noaug, C
 - From `preds_C_seed42.csv`: confusion matrix, final val accuracy, 4 correct + 4 incorrect val images with predicted vs actual label
 - Notes that the test set is unlabelled, so the val set is used for Part e
 - Saves all figures to `outputs/`
@@ -302,13 +320,20 @@ Build order: **`common.py` first** (everything imports it) → `01`, `02`, `04` 
 | Parameter | Config A | Config B′ | Config C / C-noaug | CIFAR (g, h) | Reason |
 |-----------|---------|----------|---------|---------|--------|
 | Optimizer | Adam | Adam | Adam | Adam | Adaptive LR (Week 11) |
-| Learning Rate | 1e-3 | 1e-3 | 1e-4 | 1e-4 | Lower for fine-tuning (Week 8) |
-| Scheduler | StepLR ×0.5/5ep | StepLR ×0.5/5ep | StepLR ×0.5/3ep | StepLR ×0.5/3ep | LR decay (Week 11) |
+| Learning Rate | 1e-3 | 1e-3 | 1e-4 (confirmed by sweep) | 1e-4 | Random/new weights need larger steps; pretrained weights need small steps or they are destroyed (Week 8) |
+| Scheduler | StepLR ×0.5/3ep | StepLR ×0.5/3ep | StepLR ×0.5/3ep | StepLR ×0.5/3ep | Same decay shape for all; halves LR 4× in 15 epochs (Week 11) |
+| Max epochs | 15 | 15 | 15 | 10 | **Same budget** for all Dogs vs. Cats configs; CIFAR runs are compared only with each other |
+| Checkpoint kept | Best val | Best val | Best val | Last epoch | Best-val = "up to 15 epochs" for everyone; never select on the CIFAR test set |
+| Train augmentation | Yes | No (fixed features) | C-noaug: No / C: Yes | Yes | One change per step in the comparison chain |
 | Loss | CrossEntropyLoss | CrossEntropyLoss | CrossEntropyLoss | CE (weighted for `-wloss`) | Standard multi-class |
 | Batch Size | 32 | 32 | 32 | 32 | Fits 4 GB GPU (ResNet-18 train step peak ≈ 0.8 GB on GTX 1650) |
-| Epochs | 5 | 5 | 15 | 10 | A & B′ for comparison; C is final |
 | Seed | 42 | 42 | 42 | 42 | Reproducibility |
-| BN frozen layers eval | N/A | ✅ all | ✅ all except layer4 | ✅ all except layer4 | Prevent BN stat drift (Week 11) |
+| BN frozen layers eval | N/A (all train) | N/A (fixed features) | ✅ all except layer4 | ✅ all except layer4 | Prevent BN stat drift (Week 11) |
+
+**Rules behind these choices:**
+- **Same for all:** max epochs, LR schedule, batch size, data, seed, validation set. Otherwise a difference could just mean "trained longer".
+- **Different by design:** starting LR (suits each model type — forcing one LR would handicap someone) and augmentation (deliberately varied in the chain).
+- Reported val accuracy is the best epoch's; the same (small, optimistic) selection effect applies to every config, so comparisons stay fair. State this in the report.
 
 Batch size stays fixed at 32 for every run — changing it changes results more than the hardware does.
 
@@ -321,9 +346,9 @@ Batch size stays fixed at 32 for every run — changing it changes results more 
 **Train (Phase 3, trainer only, from `master` with `FULL_RUN = True`):**
 
 ```
-1. 02_resnet_B_Bp_C.ipynb   → secures the final model + submission.csv first
+1. 02_resnet_B_Bp_C.ipynb   → LR sweep (minutes) → B, B′ (fast) → C-noaug → C + submission.csv
 2. 04_cifar10.ipynb         → longest runs; start early
-3. 01_configA_cnn.ipynb     → short baseline
+3. 01_configA_cnn.ipynb     → 15-epoch baseline
 4. Commit outputs/, upload checkpoints → everyone runs 03_comparison.ipynb
 ```
 
@@ -337,7 +362,7 @@ Time the first full epoch of each notebook and extrapolate before committing to 
 |------|-------|-----------|--------------|
 | a | 10% | `common.py`, `02` | 9 |
 | b | 20% | `common.py`, `01`, `02` | 7, 8, 9, 11 |
-| c | 10% | `01`, `02` | 7, 11 |
+| c | 10% | `01`, `02` (LR sweep), `03` | 7, 8, 11 |
 | d | 20% | `02`, `03` | — |
 | e | 10% | `03` | 9 |
 | f | 10% | `01`, `02`, `03` | 5, 6, 8, 9, 11 |
@@ -403,3 +428,4 @@ Time the first full epoch of each notebook and extrapolate before committing to 
 ## Changelog
 
 - **2026-10-10** — Switched from a single notebook to `common.py` + 4 notebooks; one trainer runs all full training; added handoff contract, output conventions and C-noaug config; environment updated (Python 3.12, torch 2.14.1 + cu126, no torchaudio, pandas 2.3.3, ipykernel); fixed `numpy.seed` → `np.random.seed`; Part h reports per-class recall and macro-F1.
+- **2026-10-11** — Training setup revised for fair comparison: StepLR ×0.5/5ep never triggered in 5-epoch runs (A, B′), so all Dogs vs. Cats configs now share **max 15 epochs + StepLR ×0.5/3ep**, keeping the best-val checkpoint; starting LR still differs by model type (justified). Comparison chain **B → B′ → C-noaug → C** (one change per step); B and B′ share fixed features extracted once with `augment=False` (B′ now runs in seconds); A vs C limitation stated (architecture + pretraining). Added LR sweep for C on the subset (Step 4 / Part c). Expected accuracies revised (estimates).
