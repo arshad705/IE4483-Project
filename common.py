@@ -16,12 +16,13 @@ Typical use in a notebook:
 
 See project-plan.md (Code Structure, Output conventions) for the contract.
 
-Note: a notebook does 5 things with this file:
+Basically a notebook does 5 things with this file:
     1. set_seed()             -> fix randomness
     2. get_dataloaders()      -> load the pictures
     3. get_resnet18()         -> build a model (or define your own, e.g. Config A)
     4. fit()                  -> train it; results CSV + best model saved automatically
     5. predict_val() / write_submission() -> save predictions and submission.csv
+       (CIFAR: predict_labels() + save_per_class() for per-class results)
 Everything else in this file supports those five steps.
 """
 
@@ -48,7 +49,8 @@ __all__ = [
     "get_dataloaders", "describe_dataset", "TestDataset", "get_test_loader",
     "get_resnet18", "describe_trainable", "set_frozen_bn_eval",
     "train_one_epoch", "evaluate", "fit", "save_result_row", "extract_features",
-    "predict_val", "write_submission", "load_checkpoint", "checkpoint_path",
+    "predict_val", "predict_labels", "save_per_class", "write_submission",
+    "load_checkpoint", "checkpoint_path",
     "run_metadata",
 ]
 
@@ -395,6 +397,7 @@ def save_result_row(config: str, eval_acc: float, seed: int = SEED, eval_split: 
 
 # MAIN TRAINING FUNCTION. Repeats for each round (epoch):
 #   learn (train_one_epoch) -> measure (evaluate) -> write a CSV row -> save the best model.
+# At the end, the best epoch is loaded back into the model (val runs), ready for predictions.
 # Use this for every trained config (A, B', C, C-noaug, CIFAR).
 def fit(model, config: str, train_loader, eval_loader, optimizer, criterion, epochs: int,
         scheduler=None, keep_bn_train=None, model_name: str = "resnet18", seed: int = SEED,
@@ -440,8 +443,45 @@ def fit(model, config: str, train_loader, eval_loader, optimizer, criterion, epo
               f"| {eval_split} loss {eval_loss:.4f} acc {eval_acc:.4f} | lr {lr:.1e} | {seconds:.0f}s"
               + (" *" if improved else ""))
 
+    # After training, put the BEST epoch's weights back into the model (val runs only),
+    # so predict_val() / write_submission() right after fit() use the best model, not the last epoch.
+    if eval_split == "val":
+        model.load_state_dict(torch.load(ckpt, map_location=DEVICE, weights_only=True))
+        print(f"restored best epoch (val acc {best_acc:.4f}) into the model")
     print(f"saved {results.name} and {ckpt.name}")
     return pd.DataFrame(rows, columns=RESULT_COLUMNS)
+
+
+# Gets the true labels and the model's predicted labels for every picture in a loader.
+# Used for per-class results (Part h) or a confusion matrix.
+@torch.no_grad()
+def predict_labels(model, loader):
+    """Return (y_true, y_pred) numpy arrays for a labelled loader."""
+    model.eval()
+    y_true, y_pred = [], []
+    for x, y in loader:
+        y_pred.append(model(x.to(DEVICE)).argmax(1).cpu().numpy())
+        y_true.append(y.numpy())
+    return np.concatenate(y_true), np.concatenate(y_pred)
+
+
+# Saves precision / recall / F1 for EACH class + macro averages to outputs/perclass_<config>_seed<N>.csv.
+# Part h: overall accuracy hides minority classes doing badly; per-class recall shows it.
+def save_per_class(y_true, y_pred, config: str, class_names, seed: int = SEED) -> pd.DataFrame:
+    from sklearn.metrics import precision_recall_fscore_support
+    labels = list(range(len(class_names)))
+    p, r, f, n = precision_recall_fscore_support(y_true, y_pred, labels=labels, zero_division=0)
+    df = pd.DataFrame({"config": config, "class": list(class_names), "precision": p.round(4),
+                       "recall": r.round(4), "f1": f.round(4), "support": n})
+    macro = {"config": config, "class": "MACRO_AVG", "precision": round(p.mean(), 4),
+             "recall": round(r.mean(), 4), "f1": round(f.mean(), 4), "support": int(n.sum())}
+    df = pd.concat([df, pd.DataFrame([macro])], ignore_index=True)
+    OUTPUT_DIR.mkdir(exist_ok=True)
+    out = OUTPUT_DIR / f"perclass_{config}_seed{seed}.csv"
+    df.to_csv(out, index=False)
+    print(f"saved {out.name}: accuracy {(np.asarray(y_true) == np.asarray(y_pred)).mean():.4f} | "
+          f"macro recall {macro['recall']:.4f} | macro F1 {macro['f1']:.4f}")
+    return df
 
 
 # Config B only: turns every picture into 512 numbers using the frozen ResNet,
