@@ -67,7 +67,7 @@ CHECKPOINT_DIR = REPO_ROOT / "checkpoints"
 
 SUBSET_SIZE = {"train": 2000, "val": 500}  # used when FULL_RUN is False
 BATCH_SIZE = 32       # fixed for every run (see plan: changing it changes results)
-NUM_WORKERS = 0       # safe default in notebooks on Windows
+NUM_WORKERS = 4       # safe default in notebooks on Windows
 IMG_SIZE = 224
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
