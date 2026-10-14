@@ -1,0 +1,2 @@
+config,seed,epoch,train_loss,train_acc,eval_loss,eval_acc,eval_split,lr,seconds,gpu,git_commit
+B,42,1,,,,0.9898,val,,10.1,NVIDIA L40S,fea3316-dirty

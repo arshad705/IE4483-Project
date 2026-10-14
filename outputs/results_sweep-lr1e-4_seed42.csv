@@ -1,0 +1,4 @@
+config,seed,epoch,train_loss,train_acc,eval_loss,eval_acc,eval_split,lr,seconds,gpu,git_commit
+sweep-lr1e-4,42,1,0.13716,0.944,0.06995,0.968,val,0.0001,2.8,NVIDIA L40S,fea3316-dirty
+sweep-lr1e-4,42,2,0.0359,0.9895,0.06079,0.976,val,0.0001,2.9,NVIDIA L40S,fea3316-dirty
+sweep-lr1e-4,42,3,0.02718,0.9885,0.05428,0.97,val,0.0001,2.8,NVIDIA L40S,fea3316-dirty

@@ -210,7 +210,7 @@ Build order: **`common.py` first** (everything imports it) → `01`, `02`, `04` 
 - `write_submission(model, path)` — predicts the 500 test images, writes `submission.csv`, checks: 500 rows, columns `id,label`, ids 1..500, labels ∈ {0, 1}, matches `sampleSubmission.csv` ids
 - `run_metadata()` → GPU name and current git commit, stored in every results row
 
-**Status:** [ ] pending
+**Status:** [x] done (full run on L40S, commit fea3316)
 
 ---
 
@@ -236,7 +236,7 @@ Build order: **`common.py` first** (everything imports it) → `01`, `02`, `04` 
 
 **Lecture grounding:** Conv+pooling (Week 9), BatchNorm+Dropout (Week 11), backprop (Week 7)
 
-**Status:** [ ] pending
+**Status:** [x] done (full run on L40S, commit fea3316)
 
 ---
 
@@ -258,7 +258,7 @@ Run in this order:
 
 **Lecture grounding:** Transfer learning (Week 8), SVM (Week 6), fine-tuning (Week 11)
 
-**Status:** [ ] pending
+**Status:** [x] done (full run on L40S, commit fea3316)
 
 ---
 
@@ -418,7 +418,7 @@ Time the first full epoch of each notebook and extrapolate before committing to 
 - CIFAR-10 is perfectly balanced (5,000/class) — Part h requires artificial imbalance
 - Test set (Dogs vs. Cats) is unlabelled — Part e uses the **val set**; state this in the report
 - Only **Config C** is the final selected model — A, B, B′ and C-noaug exist for comparison only
-- `NUM_WORKERS = 0` is the safe default in notebooks on Windows; raise it only if tested
+- `NUM_WORKERS = 4` in `common.py` (used for the full run, faster epochs); set it to 0 locally if a Windows notebook hangs. Workers are seeded, so results stay repeatable
 - Windows **Smart App Control** can block unsigned package DLLs (`An Application Control policy has blocked this file`). Check `Microsoft-Windows-CodeIntegrity/Operational` in Event Viewer for the file name; a restart fixed one torch case. Do not disable Smart App Control (cannot easily be turned back on).
 - Reference: Krizhevsky, A. (2009). *Learning Multiple Layers of Features from Tiny Images*
 - PDF references: VGG [Simonyan & Zisserman, 2014] and ResNet [He et al., 2016] — cite both even if only ResNet is used
