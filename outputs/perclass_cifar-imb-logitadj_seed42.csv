@@ -1,0 +1,12 @@
+config,class,precision,recall,f1,support
+cifar-imb-logitadj,airplane,0.9593,0.919,0.9387,1000
+cifar-imb-logitadj,automobile,0.9759,0.93,0.9524,1000
+cifar-imb-logitadj,bird,0.9555,0.859,0.9047,1000
+cifar-imb-logitadj,cat,0.8859,0.87,0.8779,1000
+cifar-imb-logitadj,deer,0.9181,0.964,0.9405,1000
+cifar-imb-logitadj,dog,0.9029,0.921,0.9119,1000
+cifar-imb-logitadj,frog,0.957,0.98,0.9684,1000
+cifar-imb-logitadj,horse,0.968,0.969,0.9685,1000
+cifar-imb-logitadj,ship,0.9213,0.984,0.9516,1000
+cifar-imb-logitadj,truck,0.9301,0.972,0.9506,1000
+cifar-imb-logitadj,MACRO_AVG,0.9374,0.9368,0.9365,10000
