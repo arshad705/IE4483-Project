@@ -1,0 +1,12 @@
+config,class,precision,recall,f1,support
+cifar-imb-wloss,airplane,0.9676,0.897,0.931,1000
+cifar-imb-wloss,automobile,0.9891,0.907,0.9463,1000
+cifar-imb-wloss,bird,0.97,0.841,0.9009,1000
+cifar-imb-wloss,cat,0.8726,0.856,0.8642,1000
+cifar-imb-wloss,deer,0.9086,0.964,0.9355,1000
+cifar-imb-wloss,dog,0.8817,0.924,0.9023,1000
+cifar-imb-wloss,frog,0.9587,0.976,0.9673,1000
+cifar-imb-wloss,horse,0.9592,0.965,0.9621,1000
+cifar-imb-wloss,ship,0.9065,0.989,0.946,1000
+cifar-imb-wloss,truck,0.9041,0.98,0.9405,1000
+cifar-imb-wloss,MACRO_AVG,0.9318,0.9299,0.9296,10000

@@ -1,0 +1,12 @@
+config,class,precision,recall,f1,support
+cifar-imb-sampler,airplane,0.9746,0.882,0.926,1000
+cifar-imb-sampler,automobile,0.976,0.937,0.9561,1000
+cifar-imb-sampler,bird,0.9636,0.848,0.9021,1000
+cifar-imb-sampler,cat,0.866,0.879,0.8725,1000
+cifar-imb-sampler,deer,0.9007,0.961,0.9299,1000
+cifar-imb-sampler,dog,0.8931,0.911,0.902,1000
+cifar-imb-sampler,frog,0.9331,0.976,0.9541,1000
+cifar-imb-sampler,horse,0.9618,0.957,0.9594,1000
+cifar-imb-sampler,ship,0.9186,0.982,0.9493,1000
+cifar-imb-sampler,truck,0.9358,0.976,0.9555,1000
+cifar-imb-sampler,MACRO_AVG,0.9323,0.9309,0.9307,10000
