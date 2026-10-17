@@ -1,0 +1,6 @@
+config,model,best_val_acc,ci95_low,ci95_high,val_misclassified,best_epoch,epochs_run,train_acc_at_best,val_loss_at_best,lr_start,train_seconds,mean_last5_val_acc,noise_floor_images,train_val_gap_pp
+A,A: custom CNN (scratch),0.9112,0.903,0.9188,444,15,15,0.9176,0.22742,0.001,402.8,0.9034,81.0,0.64
+B,B: frozen ResNet-18 + SVM,0.9898,0.9866,0.9922,51,1,1,,,,10.1,0.9898,,
+Bp,B′: frozen ResNet-18 + linear,0.9884,0.985,0.991,58,8,15,0.99075,0.03234,0.001,16.8,0.98776,5.0,0.235
+C-noaug,C-noaug: fine-tuned without aug,0.9906,0.9875,0.9929,47,11,15,0.99995,0.0469,0.0001,311.3,0.98932,13.0,0.935
+C,C: fine-tuned + aug (final),0.991,0.988,0.9933,45,11,15,0.9989,0.03704,0.0001,374.4,0.99048,4.0,0.79
