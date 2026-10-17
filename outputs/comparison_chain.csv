@@ -1,0 +1,5 @@
+step,what changes,best acc before → after,diff_pp,diff_ci95_pp,diff_images,diff_mean_last5_pp,same direction,noise_floor_images,verdict
+B → Bp,classifier: SVM → linear layer,98.98% → 98.84%,-0.14,-0.55 to +0.27,-7,-0.2,True,5.0,within noise
+Bp → C-noaug,fine-tuning: frozen → layer4 trained,98.84% → 99.06%,0.22,-0.18 to +0.62,11,0.16,True,13.0,within noise
+C-noaug → C,augmentation: off → on,99.06% → 99.10%,0.04,-0.33 to +0.41,2,0.12,True,13.0,within noise
+A → C,scratch CNN → pretrained ResNet-18,91.12% → 99.10%,7.98,+7.15 to +8.81,399,8.71,True,81.0,real improvement
