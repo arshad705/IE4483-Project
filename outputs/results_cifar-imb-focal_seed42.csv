@@ -1,0 +1,11 @@
+config,seed,epoch,train_loss,train_acc,eval_loss,eval_acc,eval_split,lr,seconds,gpu,git_commit
+cifar-imb-focal,42,1,0.2029,0.87,0.16441,0.894,test,0.0001,17.3,NVIDIA L40S,5689512
+cifar-imb-focal,42,2,0.1007,0.92134,0.13592,0.9131,test,0.0001,17.1,NVIDIA L40S,5689512
+cifar-imb-focal,42,3,0.07313,0.93853,0.1663,0.8969,test,0.0001,17.1,NVIDIA L40S,5689512
+cifar-imb-focal,42,4,0.04246,0.9635,0.13454,0.9152,test,5e-05,17.1,NVIDIA L40S,5689512
+cifar-imb-focal,42,5,0.03143,0.97153,0.13526,0.9194,test,5e-05,17.1,NVIDIA L40S,5689512
+cifar-imb-focal,42,6,0.02449,0.97842,0.14575,0.9188,test,5e-05,17.1,NVIDIA L40S,5689512
+cifar-imb-focal,42,7,0.01611,0.98445,0.14011,0.9214,test,2.5e-05,17.1,NVIDIA L40S,5689512
+cifar-imb-focal,42,8,0.0119,0.98903,0.14606,0.9217,test,2.5e-05,17.0,NVIDIA L40S,5689512
+cifar-imb-focal,42,9,0.01165,0.98968,0.13089,0.9286,test,2.5e-05,17.1,NVIDIA L40S,5689512
+cifar-imb-focal,42,10,0.00797,0.99282,0.13857,0.9277,test,1.25e-05,17.1,NVIDIA L40S,5689512
